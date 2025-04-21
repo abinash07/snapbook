@@ -1,51 +1,48 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:snapbook/splash.dart';
 import 'package:snapbook/utils/constants/text_strings.dart';
 import 'package:snapbook/utils/theme/theme.dart';
-import 'package:timezone/data/latest_10y.dart';
-
-FlutterLocalNotificationsPlugin notificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+import 'package:timezone/data/latest_10y.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 void main() async {
+  await GetStorage.init();
   WidgetsFlutterBinding.ensureInitialized();
-  initializeTimeZones(); // Initialize time zones from the timezone package
 
-  final androidSettings = AndroidInitializationSettings("@mipmap/ic_launcher");
-  final iosSettings = DarwinInitializationSettings(
-    requestAlertPermission: true,
-    requestBadgePermission: true,
-    requestCriticalPermission: true,
-    requestSoundPermission: true,
+  // Initialize timezone
+  tz_data.initializeTimeZones(); // Initialize database
+  tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+
+  // Initialize Awesome Notifications
+  await AwesomeNotifications().initialize(
+    null, // default icon (app icon)
+    [
+      NotificationChannel(
+        channelKey: 'scheduled_channel',
+        channelName: 'Scheduled Notifications',
+        channelDescription: 'Channel for scheduled reminders',
+        importance: NotificationImportance.Max,
+        defaultColor: Colors.blue,
+        ledColor: Colors.white,
+        playSound: true,
+        //soundSource: 'resource://raw/alarm_sound',
+        enableVibration: true,
+        criticalAlerts: true,
+        locked: true,
+        defaultRingtoneType: DefaultRingtoneType.Alarm,
+      ),
+    ],
   );
 
-  final initSettings = InitializationSettings(
-    android: androidSettings,
-    iOS: iosSettings,
-  );
-
-  await notificationsPlugin.initialize(
-    initSettings,
-    onDidReceiveNotificationResponse: (response) {
-      print("Tapped notification: ${response.payload}");
-    },
-  );
-
-  // 🔔 Create Notification Channel (for Android >= Oreo)
-  await notificationsPlugin
-      .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin
-      >()
-      ?.createNotificationChannel(
-        AndroidNotificationChannel(
-          "notifications-youtube", // Unique channel ID
-          "YouTube Notifications", // Channel name
-          description: "This channel is used for general notifications",
-          importance: Importance.max, // Maximum importance
-        ),
-      );
+  // Request notification permissions
+  await AwesomeNotifications().isNotificationAllowed().then((isAllowed) async {
+    if (!isAllowed) {
+      await AwesomeNotifications().requestPermissionToSendNotifications();
+    }
+  });
 
   runApp(const MyApp());
 }

@@ -97,7 +97,7 @@ class EditNoteScreen extends StatelessWidget {
     final pickedDate = await showDatePicker(
       context: context,
       initialDate: controller.callTime.value,
-      firstDate: DateTime.now(),
+      firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
 

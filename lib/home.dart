@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -6,12 +7,11 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:snapbook/add_note.dart';
 import 'package:snapbook/details.dart';
 import 'package:snapbook/edit_note.dart';
-import 'package:snapbook/main.dart';
 import 'package:snapbook/utils/constants/colors.dart';
 import 'package:snapbook/utils/constants/text_strings.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:snapbook/controller/home_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
@@ -22,24 +22,38 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final storage = GetStorage();
+  final controller = Get.put(HomeController());
 
-  final List<Map<String, dynamic>> sampleReminders = [
-    {
-      'name': 'Alice Johnson',
-      'callTime': DateTime.now().add(Duration(hours: 2)),
-    },
-    {
-      'name': 'Bob Smith',
-      'callTime': DateTime.now().add(Duration(days: 1, hours: 3)),
-    },
-    {
-      'name': 'Charlie Davis',
-      'callTime': DateTime.now().add(Duration(minutes: 45)),
-    },
-  ];
+  String formatDateTime(String isoString) {
+    final dt = DateTime.parse(isoString);
+    return '${dt.day}/${dt.month}/${dt.year} – ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+  }
 
-  String formatDateTime(DateTime dateTime) {
-    return DateFormat('MMM dd, yyyy – hh:mm a').format(dateTime);
+  void scheduleNotification() async {
+    final scheduledTime = tz.TZDateTime.now(
+      tz.local,
+    ).add(Duration(seconds: 10));
+
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: DateTime.now().millisecondsSinceEpoch % 100000,
+        channelKey: 'scheduled_channel', // Changed to alarm-specific channel
+        title: '🚨 CRITICAL ALERT!',
+        body: 'This alert cannot be dismissed!',
+        payload: {'type': 'critical'},
+        autoDismissible: false, // Prevent swipe-to-dismiss
+        wakeUpScreen: true, // Wake device screen
+        fullScreenIntent: true, // Android full-screen alert
+        criticalAlert: true,
+        notificationLayout: NotificationLayout.Inbox,
+      ),
+      // Removed action buttons to prevent dismissal
+      schedule: NotificationCalendar.fromDate(
+        date: scheduledTime,
+        allowWhileIdle: true,
+        repeats: false,
+      ),
+    );
   }
 
   void requestNotificationPermission() async {
@@ -51,84 +65,12 @@ class _HomeScreenState extends State<HomeScreen> {
     print("Notification Permission Status: $status");
   }
 
-  void showNotification() async {
-    print("Shedule notificatio");
-    var androidDetails = AndroidNotificationDetails(
-      "notifications-alarm-id", // Unique channel ID
-      "Sample alaram Notifications", // Channel name
-      importance: Importance.max,
-      priority: Priority.max,
-      playSound: true,
-      enableVibration: true,
-      timeoutAfter: 3000, // 3-second timeout
-    );
-
-    var iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    var notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    DateTime scheduleDate = DateTime.now().add(Duration(seconds: 5));
-
-    await notificationsPlugin.zonedSchedule(
-      0,
-      "Scheduled Notification",
-      "This is a test notification after 30 seconds.",
-      tz.TZDateTime.from(scheduleDate, tz.local),
-      notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: "notification-payload",
-    );
-  }
-
-  void showImmediateNotification() async {
-    var androidDetails = AndroidNotificationDetails(
-      "notifications-channel-id",
-      "Sample Notifications",
-      importance: Importance.max,
-      priority: Priority.max,
-      playSound: true,
-      enableVibration: true,
-    );
-
-    var iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    var notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await notificationsPlugin.show(
-      0,
-      "Immediate Notification",
-      "This is an immediate notification.",
-      notificationDetails,
-      payload: "notification-payload",
-    );
-  }
-
-  void checkForNotification() async {
-    NotificationAppLaunchDetails? details =
-        await notificationsPlugin.getNotificationAppLaunchDetails();
-
-    if (details != null) {
-      if (details.didNotificationLaunchApp) {
-        NotificationResponse? response = details.notificationResponse;
-
-        if (response != null) {
-          String? payload = response.payload;
-          print("Notification Payload: $payload");
-        }
+  void checkBatteryOptimization() async {
+    if (Platform.isAndroid) {
+      print("battery");
+      var status = await Permission.ignoreBatteryOptimizations.status;
+      if (status.isDenied) {
+        await Permission.ignoreBatteryOptimizations.request();
       }
     }
   }
@@ -137,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     requestNotificationPermission();
-    checkForNotification();
+    checkBatteryOptimization();
   }
 
   @override
@@ -156,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: GestureDetector(
-              onTap: showImmediateNotification,
+              onTap: scheduleNotification,
               child: Container(
                 width: 30,
                 height: 30,
@@ -176,42 +118,88 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: ListView.separated(
-        itemCount: sampleReminders.length,
-        padding: EdgeInsets.all(12),
-        separatorBuilder: (_, __) => SizedBox(height: 10),
-        itemBuilder: (context, index) {
-          final reminder = sampleReminders[index];
-          return Container(
-            padding: EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(child: Icon(Icons.person)),
-              title: GestureDetector(
-                onTap: () => Get.to(() => DetailsScreen()),
-                child: Text(
-                  reminder['name'],
-                  style: TextStyle(color: Colors.blue),
+      // body: ListView.separated(
+      //   itemCount: sampleReminders.length,
+      //   padding: EdgeInsets.all(12),
+      //   separatorBuilder: (_, __) => SizedBox(height: 10),
+      //   itemBuilder: (context, index) {
+      //     final reminder = sampleReminders[index];
+      //     return Container(
+      //       padding: EdgeInsets.all(12),
+      //       decoration: BoxDecoration(
+      //         color: Colors.grey[200],
+      //         borderRadius: BorderRadius.circular(12),
+      //       ),
+      //       child: ListTile(
+      //         contentPadding: EdgeInsets.zero,
+      //         leading: CircleAvatar(child: Icon(Icons.person)),
+      //         title: GestureDetector(
+      //           onTap: () => Get.to(() => DetailsScreen()),
+      //           child: Text(
+      //             reminder['name'],
+      //             style: TextStyle(color: Colors.blue),
+      //           ),
+      //         ),
+      //         subtitle: Text(
+      //           'Call at: ${formatDateTime(reminder['callTime'])}',
+      //           style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+      //         ),
+      //         trailing: IconButton(
+      //           icon: Icon(Icons.edit, color: Colors.blue),
+      //           onPressed: () => Get.to(() => EditNoteScreen()),
+      //         ),
+      //       ),
+      //     );
+      //   },
+      // ),
+      body: Obx(() {
+        if (controller.reminders.isEmpty) {
+          return Center(child: Text('No reminders found.'));
+        }
+
+        return ListView.separated(
+          itemCount: controller.reminders.length,
+          padding: EdgeInsets.all(12),
+          separatorBuilder: (_, __) => SizedBox(height: 10),
+          itemBuilder: (context, index) {
+            final reminder = controller.reminders[index];
+            return Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: CircleAvatar(child: Icon(Icons.person)),
+                title: GestureDetector(
+                  onTap:
+                      () => Get.to(() => DetailsScreen(), arguments: reminder),
+                  child: Text(
+                    reminder['name'],
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+                subtitle: Text(
+                  'Call at: ${formatDateTime(reminder['callTime'])}',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.edit, color: Colors.blue),
+                  onPressed:
+                      () => Get.to(
+                        () => EditNoteScreen(),
+                        arguments: reminder['id'],
+                      ),
                 ),
               ),
-              subtitle: Text(
-                'Call at: ${formatDateTime(reminder['callTime'])}',
-                style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-              ),
-              trailing: IconButton(
-                icon: Icon(Icons.edit, color: Colors.blue),
-                onPressed: () => Get.to(() => EditNoteScreen()),
-              ),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        );
+      }),
+
       floatingActionButton: FloatingActionButton(
-        onPressed: showNotification,
+        onPressed: () => Get.to(() => AddNoteScreen()),
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add, color: Colors.white),
       ),

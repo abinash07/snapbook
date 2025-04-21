@@ -18,27 +18,27 @@ class AddNoteScreen extends StatelessWidget {
           child: ListView(
             children: [
               TextFormField(
+                controller: controller.nameController,
                 decoration: InputDecoration(labelText: 'Name'),
-                onSaved: (val) => controller.name.value = val ?? '',
                 validator: (val) => val!.isEmpty ? 'Enter name' : null,
               ),
               const SizedBox(height: TSizes.spaceBtwInputFields),
               TextFormField(
+                controller: controller.emailController,
                 decoration: InputDecoration(labelText: 'Email'),
-                onSaved: (val) => controller.email.value = val ?? '',
                 validator: (val) => val!.isEmpty ? 'Enter email' : null,
               ),
               const SizedBox(height: TSizes.spaceBtwInputFields),
               TextFormField(
+                controller: controller.phoneController,
                 decoration: InputDecoration(labelText: 'Phone'),
                 keyboardType: TextInputType.phone,
-                onSaved: (val) => controller.phone.value = val ?? '',
                 validator: (val) => val!.isEmpty ? 'Enter phone' : null,
               ),
               const SizedBox(height: TSizes.spaceBtwInputFields),
               TextFormField(
+                controller: controller.freeTimeController,
                 decoration: InputDecoration(labelText: 'Free Time'),
-                onSaved: (val) => controller.freeTime.value = val ?? '',
               ),
               Obx(
                 () => ListTile(

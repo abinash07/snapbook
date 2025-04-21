@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:uuid/uuid.dart';
+import 'package:get_storage/get_storage.dart';
 
 class AddNoteController extends GetxController {
-  final name = ''.obs;
-  final email = ''.obs;
-  final phone = ''.obs;
-  final freeTime = ''.obs;
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final phoneController = TextEditingController();
+  final freeTimeController = TextEditingController();
   final callTime = DateTime.now().obs;
 
   final formKey = GlobalKey<FormState>();
+  final storage = GetStorage();
+  final uuid = Uuid();
 
   void setCallTime(DateTime dateTime) {
     callTime.value = dateTime;
@@ -16,9 +20,30 @@ class AddNoteController extends GetxController {
 
   void saveReminder() {
     if (formKey.currentState!.validate()) {
-      formKey.currentState!.save();
-      // Here you can schedule notification using flutter_local_notifications or similar package
-      Get.snackbar('Saved', 'Reminder set for ${callTime.value}');
+      final reminder = {
+        'id': uuid.v4(),
+        'name': nameController.text.trim(),
+        'email': emailController.text.trim(),
+        'phone': phoneController.text.trim(),
+        'freeTime': freeTimeController.text.trim(),
+        'callTime': callTime.value.toIso8601String(),
+      };
+
+      List reminders = storage.read('reminders') ?? [];
+      reminders.add(reminder);
+      storage.write('reminders', reminders);
+
+      clearFields();
+      Get.snackbar('Success', 'Reminder saved for ${callTime.value}');
     }
+  }
+
+  void clearFields() {
+    nameController.clear();
+    emailController.clear();
+    phoneController.clear();
+    freeTimeController.clear();
+    callTime.value = DateTime.now();
+    formKey.currentState?.reset();
   }
 }
