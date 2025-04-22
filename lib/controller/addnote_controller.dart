@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:snapbook/controller/reminder_controller.dart';
+import 'package:snapbook/helper/notification_helper.dart';
 import 'package:uuid/uuid.dart';
-import 'package:get_storage/get_storage.dart';
+import '../database/database_helper.dart';
+import '../models/reminder.dart';
 
 class AddNoteController extends GetxController {
   final nameController = TextEditingController();
@@ -11,30 +15,53 @@ class AddNoteController extends GetxController {
   final callTime = DateTime.now().obs;
 
   final formKey = GlobalKey<FormState>();
-  final storage = GetStorage();
   final uuid = Uuid();
+  final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   void setCallTime(DateTime dateTime) {
     callTime.value = dateTime;
   }
 
-  void saveReminder() {
+  Future<void> saveReminder() async {
     if (formKey.currentState!.validate()) {
-      final reminder = {
-        'id': uuid.v4(),
-        'name': nameController.text.trim(),
-        'email': emailController.text.trim(),
-        'phone': phoneController.text.trim(),
-        'freeTime': freeTimeController.text.trim(),
-        'callTime': callTime.value.toIso8601String(),
-      };
+      final reminder = Reminder(
+        id: uuid.v4(),
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        phone: phoneController.text.trim(),
+        freeTime: freeTimeController.text.trim(),
+        callTime: callTime.value,
+      );
 
-      List reminders = storage.read('reminders') ?? [];
-      reminders.add(reminder);
-      storage.write('reminders', reminders);
+      try {
+        await _dbHelper.insertReminder(reminder);
 
-      clearFields();
-      Get.snackbar('Success', 'Reminder saved for ${callTime.value}');
+        if (reminder.callTime.isAfter(DateTime.now())) {
+          await NotificationHelper.scheduleReminderNotification(
+            id: reminder.id.hashCode,
+            title: 'Reminder: ${reminder.name}',
+            body:
+                'Scheduled call time: ${DateFormat('MMM dd, yyyy - hh:mm a').format(reminder.callTime)}',
+            scheduledTime: reminder.callTime,
+          );
+        }
+
+        Get.find<ReminderController>().fetchReminders();
+
+        clearFields();
+        Get.back();
+        Get.snackbar(
+          'Success',
+          'Reminder saved successfully',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Failed to save reminder: $e',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
     }
   }
 

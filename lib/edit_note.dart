@@ -1,123 +1,108 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:snapbook/controller/editnote_controller.dart';
 
-class EditNoteScreen extends StatelessWidget {
-  EditNoteScreen({super.key});
+import 'package:snapbook/utils/constants/sizes.dart';
 
+class EditNoteScreen extends StatelessWidget {
   final EditNoteController controller = Get.put(EditNoteController());
-  final _formKey = GlobalKey<FormState>();
+
+  EditNoteScreen({super.key}) {
+    final String reminderId = Get.arguments;
+    controller.loadReminder(reminderId);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Edit Reminder'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.check),
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                controller.submitForm();
-                Get.back();
-              }
-            },
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              _buildTextField("Name", controller.name),
-              _buildTextField(
-                "Email",
-                controller.email,
-                inputType: TextInputType.emailAddress,
-              ),
-              _buildTextField(
-                "Phone",
-                controller.phone,
-                inputType: TextInputType.phone,
-              ),
-              _buildTextField("Free Time", controller.freeTime),
-              SizedBox(height: 16),
-              Text(
-                'Call Time',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              SizedBox(height: 8),
-              Obx(
-                () => InkWell(
-                  onTap: () => _pickDateTime(context),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(8),
+      appBar: AppBar(title: const Text('Edit Reminder')),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        return Form(
+          key: controller.formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(TSizes.defaultSpace),
+            child: ListView(
+              children: [
+                TextFormField(
+                  controller: controller.nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  validator: (val) => val!.isEmpty ? 'Enter name' : null,
+                ),
+                const SizedBox(height: TSizes.spaceBtwInputFields),
+                TextFormField(
+                  controller: controller.emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  validator: (val) => val!.isEmpty ? 'Enter email' : null,
+                ),
+                const SizedBox(height: TSizes.spaceBtwInputFields),
+                TextFormField(
+                  controller: controller.phoneController,
+                  decoration: const InputDecoration(labelText: 'Phone'),
+                  keyboardType: TextInputType.phone,
+                  validator: (val) => val!.isEmpty ? 'Enter phone' : null,
+                ),
+                const SizedBox(height: TSizes.spaceBtwInputFields),
+                TextFormField(
+                  controller: controller.freeTimeController,
+                  decoration: const InputDecoration(labelText: 'Free Time'),
+                ),
+                const SizedBox(height: TSizes.spaceBtwInputFields),
+                Obx(
+                  () => ListTile(
+                    title: Text(
+                      'Current Call Time: ${DateFormat('MMM dd, yyyy - hh:mm a').format(controller.callTime.value)}',
                     ),
-                    child: Text(
-                      '${controller.callTime.value.day}/${controller.callTime.value.month}/${controller.callTime.value.year} – ${controller.callTime.value.hour}:${controller.callTime.value.minute.toString().padLeft(2, '0')}',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    trailing: const Icon(Icons.edit_calendar),
+                    onTap: () async {
+                      final picked = await showDateTimePicker(context);
+                      if (picked != null) controller.setCallTime(picked);
+                    },
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: TSizes.spaceBtwSections),
+                ElevatedButton(
+                  onPressed: controller.updateReminder,
+                  child: const Text('Update Reminder'),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    TextInputType inputType = TextInputType.text,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: inputType,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        validator:
-            (value) => value == null || value.isEmpty ? 'Enter $label' : null,
-      ),
-    );
-  }
+  Future<DateTime?> showDateTimePicker(BuildContext context) async {
+    final DateTime currentDate = controller.callTime.value;
 
-  Future<void> _pickDateTime(BuildContext context) async {
-    final controller = Get.find<EditNoteController>();
-    final pickedDate = await showDatePicker(
+    final DateTime? date = await showDatePicker(
       context: context,
-      initialDate: controller.callTime.value,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      initialDate: currentDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
 
-    if (pickedDate != null) {
-      final pickedTime = await showTimePicker(
+    if (date != null) {
+      final TimeOfDay? time = await showTimePicker(
         context: context,
-        initialTime: TimeOfDay.fromDateTime(controller.callTime.value),
+        initialTime: TimeOfDay.fromDateTime(currentDate),
       );
 
-      if (pickedTime != null) {
-        controller.updateCallTime(
-          DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          ),
+      if (time != null) {
+        return DateTime(
+          date.year,
+          date.month,
+          date.day,
+          time.hour,
+          time.minute,
         );
       }
     }
+    return null;
   }
 }
