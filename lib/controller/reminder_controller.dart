@@ -8,6 +8,8 @@ class ReminderController extends GetxController {
   final _dbHelper = DatabaseHelper.instance;
   var reminders = <Reminder>[].obs;
   var isLoading = true.obs;
+  final searchQuery = ''.obs;
+  final showSearch = false.obs;
 
   @override
   void onInit() {
@@ -25,11 +27,6 @@ class ReminderController extends GetxController {
     }
   }
 
-  // Future<void> deleteReminder(String id) async {
-  //   await _dbHelper.deleteReminder(id);
-  //   await fetchReminders();
-  // }
-
   Future<void> deleteReminder(String id) async {
     try {
       // Cancel notification before deleting
@@ -40,5 +37,20 @@ class ReminderController extends GetxController {
     } catch (e) {
       Get.snackbar('Error', 'Failed to delete reminder: $e');
     }
+  }
+
+  List<Reminder> get filteredReminders {
+    if (searchQuery.isEmpty) return reminders;
+    return reminders.where((reminder) {
+      return reminder.name.toLowerCase().contains(
+        searchQuery.value.toLowerCase(),
+      );
+    }).toList();
+  }
+
+  void toggleSearch() => showSearch.toggle();
+
+  Future<Reminder> getReminderById(String id) {
+    return _dbHelper.getReminderById(id);
   }
 }

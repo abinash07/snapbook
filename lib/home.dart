@@ -25,33 +25,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final storage = GetStorage();
   final ReminderController controller = Get.put(ReminderController());
 
-  void scheduleNotification() async {
-    final scheduledTime = tz.TZDateTime.now(
-      tz.local,
-    ).add(Duration(seconds: 10));
-
-    await AwesomeNotifications().createNotification(
-      content: NotificationContent(
-        id: DateTime.now().millisecondsSinceEpoch % 100000,
-        channelKey: 'scheduled_channel', // Changed to alarm-specific channel
-        title: '🚨 CRITICAL ALERT!',
-        body: 'This alert cannot be dismissed!',
-        payload: {'type': 'critical'},
-        autoDismissible: false, // Prevent swipe-to-dismiss
-        wakeUpScreen: true, // Wake device screen
-        fullScreenIntent: true, // Android full-screen alert
-        criticalAlert: true,
-        notificationLayout: NotificationLayout.Inbox,
-      ),
-      // Removed action buttons to prevent dismissal
-      schedule: NotificationCalendar.fromDate(
-        date: scheduledTime,
-        allowWhileIdle: true,
-        repeats: false,
-      ),
-    );
-  }
-
   void requestNotificationPermission() async {
     var status = await Permission.notification.status;
     if (!status.isGranted) {
@@ -103,55 +76,61 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String? imagePath = storage.read("image");
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          TTexts.appName,
-          style: TextStyle(color: TColors.black, fontWeight: FontWeight.bold),
-        ),
+        title: Obx(() {
+          return controller.showSearch.value
+              ? TextField(
+                autofocus: true,
+                onChanged: (value) => controller.searchQuery.value = value,
+                decoration: InputDecoration(
+                  hintText: 'Search reminders...',
+                  border: InputBorder.none,
+                ),
+              )
+              : Text(
+                TTexts.appName,
+                style: TextStyle(
+                  color: TColors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+        }),
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: TColors.primary),
         actionsIconTheme: IconThemeData(color: TColors.primary),
         actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: GestureDetector(
-              onTap: scheduleNotification,
-              child: Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: TColors.blueShade, width: 2),
-                ),
-                child: CircleAvatar(
-                  backgroundImage:
-                      (imagePath != null && imagePath.isNotEmpty)
-                          ? FileImage(File(imagePath))
-                          : const AssetImage('assets/images/logo.png')
-                              as ImageProvider,
-                ),
+          Obx(
+            () => IconButton(
+              icon: Icon(
+                controller.showSearch.value ? Icons.close : Icons.search,
               ),
+              onPressed: () {
+                controller.toggleSearch();
+                if (!controller.showSearch.value) {
+                  controller.searchQuery.value = '';
+                }
+              },
             ),
           ),
         ],
       ),
+
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());
         }
 
-        if (controller.reminders.isEmpty) {
+        if (controller.filteredReminders.isEmpty) {
           return Center(child: Text('No reminders found.'));
         }
 
         return ListView.separated(
-          itemCount: controller.reminders.length,
+          itemCount: controller.filteredReminders.length,
           padding: EdgeInsets.all(12),
           separatorBuilder: (_, __) => SizedBox(height: 10),
           itemBuilder: (context, index) {
-            final reminder = controller.reminders[index];
+            final reminder = controller.filteredReminders[index];
             return Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -163,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 leading: CircleAvatar(child: Icon(Icons.person)),
                 title: GestureDetector(
                   onTap:
-                      () => Get.to(() => DetailsScreen(), arguments: reminder),
+                      () =>
+                          Get.to(() => DetailsScreen(), arguments: reminder.id),
                   child: Text(
                     reminder.name,
                     style: TextStyle(color: Colors.blue),

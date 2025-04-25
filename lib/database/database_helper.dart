@@ -56,7 +56,10 @@ class DatabaseHelper {
 
   Future<List<Reminder>> getAllReminders() async {
     final db = await instance.database;
-    final List<Map<String, dynamic>> maps = await db.query(table);
+    final List<Map<String, dynamic>> maps = await db.query(
+      table,
+      orderBy: 'callTime DESC',
+    );
     return List.generate(maps.length, (i) => Reminder.fromMap(maps[i]));
   }
 

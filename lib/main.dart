@@ -38,11 +38,17 @@ void main() async {
   );
 
   // Request notification permissions
-  await AwesomeNotifications().isNotificationAllowed().then((isAllowed) async {
-    if (!isAllowed) {
-      await AwesomeNotifications().requestPermissionToSendNotifications();
-    }
-  });
+  // await AwesomeNotifications().isNotificationAllowed().then((isAllowed) async {
+  //   if (!isAllowed) {
+  //     await AwesomeNotifications().requestPermissionToSendNotifications();
+  //   }
+  // });
+
+  bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+  if (!isAllowed) {
+    await AwesomeNotifications().requestPermissionToSendNotifications();
+    isAllowed = await AwesomeNotifications().isNotificationAllowed();
+  }
 
   runApp(const MyApp());
 }

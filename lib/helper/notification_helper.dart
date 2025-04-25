@@ -1,5 +1,7 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:snapbook/details.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -11,11 +13,15 @@ class NotificationHelper {
         channelKey: 'scheduled_channel',
         channelName: 'Scheduled Reminders',
         channelDescription: 'Channel for reminder notifications',
-        importance: NotificationImportance.High,
-        soundSource: 'resource://raw/alert',
+        importance: NotificationImportance.Max,
+        //soundSource: 'resource://raw/alert',
+        playSound: true,
         defaultColor: Colors.blue,
         ledColor: Colors.blue,
         criticalAlerts: true,
+        enableVibration: true,
+        locked: true,
+        defaultRingtoneType: DefaultRingtoneType.Alarm,
       ),
     ]);
   }
@@ -30,7 +36,6 @@ class NotificationHelper {
       scheduledTime,
       tz.local,
     );
-
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: id,
@@ -42,13 +47,35 @@ class NotificationHelper {
         wakeUpScreen: true,
         fullScreenIntent: true,
         criticalAlert: true,
+        category: NotificationCategory.Reminder,
       ),
       schedule: NotificationCalendar.fromDate(
         date: tzScheduledTime,
         allowWhileIdle: true,
-        repeats: false,
+        repeats: true,
+        preciseAlarm: true,
       ),
     );
+  }
+
+  static void listenToNotificationTap() {
+    AwesomeNotifications().setListeners(
+      onActionReceivedMethod: (ReceivedAction receivedAction) async {
+        final reminderId = receivedAction.payload?['id'];
+        if (reminderId != null) {
+          Get.to(() => DetailsScreen(), arguments: reminderId);
+        }
+      },
+    );
+  }
+
+  static Future<bool> checkAndRequestNotificationPermission() async {
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) {
+      await AwesomeNotifications().requestPermissionToSendNotifications();
+      isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    }
+    return isAllowed;
   }
 
   static Future<void> cancelScheduledNotification(int id) async {

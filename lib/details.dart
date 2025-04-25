@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:snapbook/controller/reminder_controller.dart';
+import 'package:snapbook/models/reminder.dart';
 
 class DetailsScreen extends StatelessWidget {
+  final ReminderController controller = Get.find<ReminderController>();
   DetailsScreen({super.key});
-
-  final Map<String, dynamic> reminder = {
-    'name': 'Alice Johnson',
-    'email': 'alice@example.com',
-    'phone': '+1 555 123 4567',
-    'freeTime': 'Weekends after 4 PM',
-    'callTime': DateTime.now().add(Duration(hours: 3)),
-  };
 
   String formatDateTime(DateTime dateTime) {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} – ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
@@ -17,21 +13,46 @@ class DetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Reminder Details')),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildField('👤 Name', reminder['name']),
-            _buildField('✉️ Email', reminder['email']),
-            _buildField('📞 Phone', reminder['phone']),
-            _buildField('🕒 Free Time', reminder['freeTime']),
-            _buildField('📅 Call Time', formatDateTime(reminder['callTime'])),
-          ],
-        ),
-      ),
+    final String id = Get.arguments;
+
+    return FutureBuilder<Reminder?>(
+      future: controller.getReminderById(id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(title: Text('Reminder Details')),
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return Scaffold(
+            appBar: AppBar(title: Text('Reminder Details')),
+            body: Center(child: Text('Reminder not found.')),
+          );
+        }
+
+        final reminder = snapshot.data!;
+        return Scaffold(
+          appBar: AppBar(title: Text('Reminder Details')),
+          body: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 24.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildField('👤 Name', reminder.name),
+                _buildField('✉️ Email', reminder.email),
+                _buildField('📞 Phone', reminder.phone),
+                _buildField('🕒 Free Time', reminder.freeTime),
+                _buildField('📅 Call Time', formatDateTime(reminder.callTime)),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
