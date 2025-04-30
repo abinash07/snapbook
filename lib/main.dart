@@ -2,6 +2,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:snapbook/app_routes.dart';
 import 'package:snapbook/splash.dart';
 import 'package:snapbook/utils/constants/text_strings.dart';
 import 'package:snapbook/utils/theme/theme.dart';
@@ -65,6 +66,8 @@ class MyApp extends StatelessWidget {
       darkTheme: TAppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
+      // initialRoute: AppRoutes.splash,
+      // getPages: AppRoutes.routes,
     );
   }
 }

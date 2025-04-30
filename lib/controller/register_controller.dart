@@ -3,17 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:snapbook/widgets/bottomNavBar.dart';
+import 'package:snapbook/home.dart';
 
 class RegisterController extends GetxController {
+  var isPasswordHidden = true.obs;
+  var isLoading = false.obs;
+  final box = GetStorage();
+  final formKey = GlobalKey<FormState>();
+
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  var isLoading = false.obs;
-  final box = GetStorage();
+
+  void togglePasswordVisibility() {
+    isPasswordHidden.value = !isPasswordHidden.value;
+  }
+
+  @override
+  void onClose() {
+    passwordController.dispose();
+    super.onClose();
+  }
 
   Future<void> registerUser() async {
-    final String apiUrl = 'http://snapkar.com/api/register.php';
+    final String apiUrl = 'http://snapkar.com/api/resgister.php';
     final String name = nameController.text.trim();
     final String email = emailController.text.trim();
     final String password = passwordController.text.trim();
@@ -40,11 +53,9 @@ class RegisterController extends GetxController {
       isLoading.value = false;
 
       if (response.statusCode == 200 && responseData['status'] == 1) {
-        // ✅ Store login status & token in GetStorage
         box.write("isLoggedIn", true);
         box.write("token", responseData['result']['auth_key']);
-
-        Get.offAll(() => BottomNavBar()); // Navigate to home
+        Get.offAll(() => HomeScreen());
       } else {
         Get.snackbar(
           "Registration Failed",
@@ -54,7 +65,6 @@ class RegisterController extends GetxController {
       }
     } catch (e) {
       isLoading.value = false;
-      print("Register Error: $e");
       Get.snackbar(
         "Error",
         "Something went wrong. Please try again.",

@@ -1,16 +1,17 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:snapbook/controller/login_controller.dart';
-import 'package:snapbook/forgot.dart';
-import 'package:snapbook/register.dart';
+import 'package:get/get.dart';
+import 'package:snapbook/controller/reset_password_controller.dart';
+import 'package:snapbook/utils/components/customText.dart';
+import 'package:snapbook/utils/constants/colors.dart';
 import 'package:snapbook/utils/constants/sizes.dart';
 import 'package:snapbook/utils/constants/text_strings.dart';
-import 'package:snapbook/widgets/loginHeader.dart';
 
-class LoginScreen extends StatelessWidget {
-  LoginScreen({super.key});
+class ResetPasswordScreen extends StatelessWidget {
+  ResetPasswordScreen({super.key});
 
-  final LoginController loginController = Get.put(LoginController());
+  final ResetPasswordController resetPasswordController = Get.put(
+    ResetPasswordController(),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -30,51 +31,63 @@ class LoginScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    LoginHeader(),
+                    const SizedBox(height: TSizes.spaceBtwItems),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CustomText(
+                          text: "Forgot Password?",
+                          color1: TColors.white,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          height: 10,
+                        ),
+                      ],
+                    ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CustomText(
+                          text:
+                              'Enter the registered email address\nand send the OTP',
+                          color1: TColors.white,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 17,
+                          textAlign: TextAlign.center,
+                          height: 60,
+                        ),
+                      ],
+                    ),
 
                     Form(
-                      key: loginController.formKey,
+                      key: resetPasswordController.formKey,
                       child: Padding(
                         padding: const EdgeInsets.only(top: 80),
                         child: Column(
                           children: [
-                            TextFormField(
-                              controller: loginController.emailController,
-                              decoration: const InputDecoration(
-                                prefixIcon: Icon(Icons.email_outlined),
-                                labelText: TTexts.email,
-                              ),
-                              validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'This field is required.';
-                                }
-                                // Simple email format check
-                                if (!RegExp(
-                                  r'^[^@]+@[^@]+\.[^@]+',
-                                ).hasMatch(value)) {
-                                  return 'Please enter a valid email address.';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: TSizes.spaceBtwInputFields),
-
                             Obx(
                               () => TextFormField(
-                                controller: loginController.passwordController,
+                                controller:
+                                    resetPasswordController.passwordController,
                                 obscureText:
-                                    loginController.isPasswordHidden.value,
+                                    resetPasswordController
+                                        .isPasswordHidden
+                                        .value,
                                 decoration: InputDecoration(
                                   prefixIcon: Icon(Icons.lock_outline),
                                   labelText: TTexts.password,
                                   suffixIcon: IconButton(
                                     icon: Icon(
-                                      loginController.isPasswordHidden.value
+                                      resetPasswordController
+                                              .isPasswordHidden
+                                              .value
                                           ? Icons.visibility_off_outlined
                                           : Icons.visibility_outlined,
                                     ),
                                     onPressed:
-                                        loginController
+                                        resetPasswordController
                                             .togglePasswordVisibility,
                                   ),
                                 ),
@@ -105,20 +118,7 @@ class LoginScreen extends StatelessWidget {
                               ),
                             ),
 
-                            const SizedBox(
-                              height: TSizes.spaceBtwInputFields / 2,
-                            ),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () => Get.to(() => ForgotScreen()),
-                                  child: const Text(TTexts.forgetPassword),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: TSizes.spaceBtwSections),
+                            const SizedBox(height: TSizes.spaceBtwInputFields),
 
                             SizedBox(
                               width: double.infinity,
@@ -128,34 +128,20 @@ class LoginScreen extends StatelessWidget {
                                   side: const BorderSide(color: Colors.blue),
                                 ),
                                 onPressed: () {
-                                  final email =
-                                      loginController.emailController.text
-                                          .trim();
-                                  final password =
-                                      loginController.passwordController.text
-                                          .trim();
-                                  if (loginController.formKey.currentState!
+                                  if (resetPasswordController
+                                      .formKey
+                                      .currentState!
                                       .validate()) {
-                                    loginController.loginUser(email, password);
+                                    resetPasswordController.resetPassword();
                                   }
                                 },
                                 child: Obx(() {
-                                  return loginController.isLoading.value
+                                  return resetPasswordController.isLoading.value
                                       ? const CircularProgressIndicator(
                                         color: Colors.white,
                                       )
-                                      : const Text(TTexts.signIn);
+                                      : const Text(TTexts.sendOTP);
                                 }),
-                              ),
-                            ),
-
-                            const SizedBox(height: TSizes.spaceBtwItems),
-
-                            SizedBox(
-                              width: double.infinity,
-                              child: OutlinedButton(
-                                onPressed: () => Get.to(() => RegisterScreen()),
-                                child: const Text(TTexts.createAccount),
                               ),
                             ),
                           ],
