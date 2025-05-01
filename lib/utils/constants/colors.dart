@@ -46,4 +46,6 @@ class TColors {
 
   // Image boarder Color
   static const Color blueShade = Color(0xffe4e7fa);
+
+  static const Color otpColor = Color(0xFF878787);
 }

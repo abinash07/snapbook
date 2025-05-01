@@ -120,6 +120,46 @@ class ResetPasswordScreen extends StatelessWidget {
 
                             const SizedBox(height: TSizes.spaceBtwInputFields),
 
+                            Obx(
+                              () => TextFormField(
+                                controller:
+                                    resetPasswordController
+                                        .confirmPasswordController,
+                                obscureText:
+                                    resetPasswordController
+                                        .isPasswordHidden
+                                        .value,
+                                decoration: InputDecoration(
+                                  prefixIcon: Icon(Icons.lock_outline),
+                                  labelText: TTexts.password,
+                                  suffixIcon: IconButton(
+                                    icon: Icon(
+                                      resetPasswordController
+                                              .isPasswordHidden
+                                              .value
+                                          ? Icons.visibility_off_outlined
+                                          : Icons.visibility_outlined,
+                                    ),
+                                    onPressed:
+                                        resetPasswordController
+                                            .togglePasswordVisibility,
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Confirm password is required.';
+                                  } else if (value !=
+                                      resetPasswordController
+                                          .passwordController
+                                          .text) {
+                                    return 'Passwords do not match.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(height: TSizes.spaceBtwSections),
+
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
@@ -127,14 +167,32 @@ class ResetPasswordScreen extends StatelessWidget {
                                   backgroundColor: Colors.blue,
                                   side: const BorderSide(color: Colors.blue),
                                 ),
-                                onPressed: () {
-                                  if (resetPasswordController
-                                      .formKey
-                                      .currentState!
-                                      .validate()) {
-                                    resetPasswordController.resetPassword();
-                                  }
-                                },
+                                // onPressed: () {
+                                //   if (resetPasswordController
+                                //       .formKey
+                                //       .currentState!
+                                //       .validate()) {
+                                //     resetPasswordController.resetPassword();
+                                //   }
+                                // },
+                                onPressed:
+                                    (resetPasswordController
+                                                .passwordController
+                                                .text ==
+                                            resetPasswordController
+                                                .confirmPasswordController
+                                                .text)
+                                        ? () {
+                                          if (resetPasswordController
+                                              .formKey
+                                              .currentState!
+                                              .validate()) {
+                                            resetPasswordController
+                                                .resetPassword();
+                                          }
+                                        }
+                                        : null,
+
                                 child: Obx(() {
                                   return resetPasswordController.isLoading.value
                                       ? const CircularProgressIndicator(

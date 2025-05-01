@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:snapbook/verifyotp.dart';
 
 class ForgotController extends GetxController {
   var isLoading = false.obs;
@@ -24,11 +25,7 @@ class ForgotController extends GetxController {
       isLoading.value = false;
 
       if (response.statusCode == 200 && responseData['status'] == 1) {
-        //Get.offAll(() => HomeScreen());
-        // Get.toNamed(
-        //   '/verify',
-        //   arguments: {'email': 'abc@example.com', 'otp': '123456'},
-        // );
+        Get.offAll(() => VerifyOTPScreen(), arguments: {'email': email});
       } else {
         Get.snackbar(
           "Failed to send OTP",
@@ -37,6 +34,7 @@ class ForgotController extends GetxController {
         );
       }
     } catch (e) {
+      print(e);
       isLoading.value = false;
       Get.snackbar(
         "Error",

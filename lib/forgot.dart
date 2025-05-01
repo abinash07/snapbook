@@ -85,7 +85,7 @@ class ForgotScreen extends StatelessWidget {
                               },
                             ),
 
-                            const SizedBox(height: TSizes.spaceBtwInputFields),
+                            const SizedBox(height: TSizes.spaceBtwSections),
 
                             SizedBox(
                               width: double.infinity,
