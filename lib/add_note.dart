@@ -7,6 +7,13 @@ class AddNoteScreen extends StatelessWidget {
   final controller = Get.put(AddNoteController());
   AddNoteScreen({super.key});
 
+  final howWeMetOptions = [
+    'Physical Invitation',
+    'Social Media',
+    'Reference',
+    'Wellness Evaluation',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,22 +31,77 @@ class AddNoteScreen extends StatelessWidget {
               ),
               const SizedBox(height: TSizes.spaceBtwInputFields),
               TextFormField(
-                controller: controller.emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (val) => val!.isEmpty ? 'Enter email' : null,
-              ),
-              const SizedBox(height: TSizes.spaceBtwInputFields),
-              TextFormField(
-                controller: controller.phoneController,
-                decoration: InputDecoration(labelText: 'Phone'),
+                controller: controller.mobileController,
+                decoration: InputDecoration(labelText: 'Mobile Number'),
                 keyboardType: TextInputType.phone,
-                validator: (val) => val!.isEmpty ? 'Enter phone' : null,
+                validator: (val) {
+                  if (val!.isEmpty) return 'Enter mobile number';
+                  if (!RegExp(r'^[0-9]{10}$').hasMatch(val))
+                    return 'Enter valid 10-digit number';
+                  return null;
+                },
+              ),
+              SizedBox(height: TSizes.spaceBtwInputFields),
+              TextFormField(
+                controller: controller.locationController,
+                decoration: InputDecoration(labelText: 'Location'),
+                validator: (val) => val!.isEmpty ? 'Enter location' : null,
+              ),
+              SizedBox(height: TSizes.spaceBtwInputFields),
+              Obx(
+                () => ListTile(
+                  title: Text(
+                    'D.O.B: ${controller.dob.value.year == 1900 ? "Not Set" : '${controller.dob.value.day}-${controller.dob.value.month}-${controller.dob.value.year}'}',
+                  ),
+                  trailing: Icon(Icons.calendar_today),
+                  onTap: () => controller.pickDob(context),
+                ),
               ),
               const SizedBox(height: TSizes.spaceBtwInputFields),
               TextFormField(
-                controller: controller.freeTimeController,
-                decoration: InputDecoration(labelText: 'Free Time'),
+                controller: controller.remarkController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: 'Remark',
+                  hintText: 'Enter any notes or remarks...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  alignLabelWithHint: true, // aligns label with top-left
+                ),
+                validator: (val) => val!.isEmpty ? 'Enter remark' : null,
               ),
+              SizedBox(height: TSizes.spaceBtwInputFields),
+              Obx(
+                () => DropdownButtonFormField<String>(
+                  value:
+                      controller.howWeMet.value.isEmpty
+                          ? null
+                          : controller.howWeMet.value,
+                  items:
+                      howWeMetOptions.map((item) {
+                        return DropdownMenuItem(value: item, child: Text(item));
+                      }).toList(),
+                  onChanged: (val) => controller.howWeMet.value = val ?? '',
+                  decoration: InputDecoration(labelText: 'How we Meet'),
+                  validator:
+                      (val) =>
+                          val == null || val.isEmpty
+                              ? 'Select how you met'
+                              : null,
+                ),
+              ),
+              SizedBox(height: TSizes.spaceBtwInputFields),
+              Obx(
+                () => ListTile(
+                  title: Text(
+                    'Anniversary: ${controller.anniversary.value.year == 1900 ? "Not Set" : '${controller.anniversary.value.day}-${controller.anniversary.value.month}-${controller.anniversary.value.year}'}',
+                  ),
+                  trailing: Icon(Icons.calendar_today),
+                  onTap: () => controller.pickAnniversary(context),
+                ),
+              ),
+              SizedBox(height: TSizes.spaceBtwInputFields),
               Obx(
                 () => ListTile(
                   title: Text('When to Call: ${controller.callTime.value}'),

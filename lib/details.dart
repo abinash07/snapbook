@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:snapbook/controller/reminder_controller.dart';
 import 'package:snapbook/models/reminder.dart';
 
@@ -9,6 +10,10 @@ class DetailsScreen extends StatelessWidget {
 
   String formatDateTime(DateTime dateTime) {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} – ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  String formatDate(DateTime date) {
+    return DateFormat('MMM dd, yyyy').format(date);
   }
 
   @override
@@ -35,20 +40,31 @@ class DetailsScreen extends StatelessWidget {
         final reminder = snapshot.data!;
         return Scaffold(
           appBar: AppBar(title: Text('Reminder Details')),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20.0,
-              vertical: 24.0,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildField('👤 Name', reminder.name),
-                _buildField('✉️ Email', reminder.email),
-                _buildField('📞 Phone', reminder.phone),
-                _buildField('🕒 Free Time', reminder.freeTime),
-                _buildField('📅 Call Time', formatDateTime(reminder.callTime)),
-              ],
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 24.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildField('👤 Name', reminder.name),
+                  _buildField('📱 Mobile', reminder.mobile),
+                  _buildField('📍 Location', reminder.location),
+                  _buildField(
+                    '📅 Call Time',
+                    formatDateTime(reminder.callTime),
+                  ),
+                  _buildField('🎂 DOB', formatDate(reminder.dob)),
+                  _buildField('📝 Remark', reminder.remark),
+                  _buildField(
+                    '💍 Anniversary',
+                    formatDate(reminder.anniversary),
+                  ),
+                  _buildField('🤝 How We Met', reminder.howWeMet),
+                ],
+              ),
             ),
           ),
         );

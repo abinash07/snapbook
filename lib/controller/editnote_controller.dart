@@ -12,9 +12,12 @@ class EditNoteController extends GetxController {
   final isLoading = true.obs;
 
   final nameController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
-  final freeTimeController = TextEditingController();
+  final mobileController = TextEditingController();
+  final locationController = TextEditingController();
+  final remarkController = TextEditingController();
+  final dob = DateTime(1900).obs;
+  final anniversary = DateTime(1900).obs;
+  final howWeMet = ''.obs;
   final callTime = DateTime.now().obs;
   final RxString reminderId = ''.obs;
 
@@ -29,9 +32,12 @@ class EditNoteController extends GetxController {
       isLoading(true);
       final reminder = await _dbHelper.getReminderById(id);
       nameController.text = reminder.name;
-      emailController.text = reminder.email;
-      phoneController.text = reminder.phone;
-      freeTimeController.text = reminder.freeTime;
+      locationController.text = reminder.location;
+      mobileController.text = reminder.mobile;
+      dob.value = reminder.dob;
+      anniversary.value = reminder.anniversary;
+      howWeMet.value = reminder.howWeMet;
+      remarkController.text = reminder.remark;
       callTime.value = reminder.callTime;
     } finally {
       isLoading(false);
@@ -42,15 +48,38 @@ class EditNoteController extends GetxController {
     callTime.value = dateTime;
   }
 
+  Future<void> pickDob(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: dob.value,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) dob.value = picked;
+  }
+
+  Future<void> pickAnniversary(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: anniversary.value,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) anniversary.value = picked;
+  }
+
   Future<void> updateReminder() async {
     if (formKey.currentState!.validate()) {
       try {
         final updatedReminder = Reminder(
           id: reminderId.value,
           name: nameController.text.trim(),
-          email: emailController.text.trim(),
-          phone: phoneController.text.trim(),
-          freeTime: freeTimeController.text.trim(),
+          mobile: mobileController.text.trim(),
+          location: locationController.text.trim(),
+          dob: dob.value,
+          howWeMet: howWeMet.value,
+          anniversary: anniversary.value,
+          remark: remarkController.text.trim(),
           callTime: callTime.value,
         );
 
@@ -87,9 +116,8 @@ class EditNoteController extends GetxController {
   @override
   void onClose() {
     nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    freeTimeController.dispose();
+    mobileController.dispose();
+    locationController.dispose();
     super.onClose();
   }
 }

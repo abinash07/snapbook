@@ -9,9 +9,12 @@ import '../models/reminder.dart';
 
 class AddNoteController extends GetxController {
   final nameController = TextEditingController();
-  final emailController = TextEditingController();
-  final phoneController = TextEditingController();
-  final freeTimeController = TextEditingController();
+  final mobileController = TextEditingController();
+  final locationController = TextEditingController();
+  final dob = DateTime(1900).obs;
+  final remarkController = TextEditingController();
+  final anniversary = DateTime(1900).obs;
+  final howWeMet = ''.obs;
   final callTime = DateTime.now().obs;
 
   final formKey = GlobalKey<FormState>();
@@ -22,14 +25,36 @@ class AddNoteController extends GetxController {
     callTime.value = dateTime;
   }
 
+  Future<void> pickDob(BuildContext context) async {
+    final picked = await _pickDate(context);
+    if (picked != null) dob.value = picked;
+  }
+
+  Future<void> pickAnniversary(BuildContext context) async {
+    final picked = await _pickDate(context);
+    if (picked != null) anniversary.value = picked;
+  }
+
+  Future<DateTime?> _pickDate(BuildContext context) {
+    return showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().add(Duration(days: 365 * 100)),
+    );
+  }
+
   Future<void> saveReminder() async {
     if (formKey.currentState!.validate()) {
       final reminder = Reminder(
         id: uuid.v4(),
         name: nameController.text.trim(),
-        email: emailController.text.trim(),
-        phone: phoneController.text.trim(),
-        freeTime: freeTimeController.text.trim(),
+        mobile: mobileController.text.trim(),
+        location: locationController.text.trim(),
+        dob: dob.value,
+        howWeMet: howWeMet.value,
+        anniversary: anniversary.value,
+        remark: remarkController.text.trim(),
         callTime: callTime.value,
       );
 
@@ -56,6 +81,7 @@ class AddNoteController extends GetxController {
           snackPosition: SnackPosition.BOTTOM,
         );
       } catch (e) {
+        print(e);
         Get.snackbar(
           'Error',
           'Failed to save reminder: $e',
@@ -67,9 +93,6 @@ class AddNoteController extends GetxController {
 
   void clearFields() {
     nameController.clear();
-    emailController.clear();
-    phoneController.clear();
-    freeTimeController.clear();
     callTime.value = DateTime.now();
     formKey.currentState?.reset();
   }

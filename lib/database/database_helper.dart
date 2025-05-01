@@ -5,14 +5,17 @@ import '../models/reminder.dart';
 
 class DatabaseHelper {
   static const _databaseName = 'reminders.db';
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
   static const table = 'reminders';
 
   static const columnId = 'id';
   static const columnName = 'name';
-  static const columnEmail = 'email';
-  static const columnPhone = 'phone';
-  static const columnFreeTime = 'freeTime';
+  static const columnMobile = 'mobile';
+  static const columnLocation = 'location';
+  static const columnDob = 'dob';
+  static const columnAnniversary = 'anniversary';
+  static const columnHowWeMet = 'howWeMet';
+  static const columnRemark = 'remark';
   static const columnCallTime = 'callTime';
 
   static Database? _database;
@@ -41,9 +44,12 @@ class DatabaseHelper {
       CREATE TABLE $table (
         $columnId TEXT PRIMARY KEY,
         $columnName TEXT NOT NULL,
-        $columnEmail TEXT NOT NULL,
-        $columnPhone TEXT NOT NULL,
-        $columnFreeTime TEXT,
+        $columnMobile TEXT,
+        $columnLocation TEXT,
+        $columnDob TEXT,
+        $columnAnniversary TEXT,
+        $columnHowWeMet TEXT,
+        $columnRemark TEXT,
         $columnCallTime TEXT NOT NULL
       )
     ''');
