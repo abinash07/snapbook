@@ -23,7 +23,10 @@ class EditNoteScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Reminder')),
+      appBar: AppBar(
+        title: Text('Edit Reminder'),
+        backgroundColor: Colors.white,
+      ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
@@ -34,6 +37,7 @@ class EditNoteScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(TSizes.defaultSpace),
             child: ListView(
+              padding: EdgeInsets.only(top: 15),
               children: [
                 TextFormField(
                   controller: controller.nameController,
@@ -46,9 +50,12 @@ class EditNoteScreen extends StatelessWidget {
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
                   keyboardType: TextInputType.phone,
                   validator: (val) {
-                    if (val!.isEmpty) return 'Enter mobile number';
-                    if (!RegExp(r'^[0-9]{10}$').hasMatch(val))
+                    if (val!.isEmpty) {
+                      return 'Enter mobile number';
+                    }
+                    if (!RegExp(r'^[0-9]{10}$').hasMatch(val)) {
                       return 'Enter valid 10-digit number';
+                    }
                     return null;
                   },
                 ),
@@ -60,17 +67,34 @@ class EditNoteScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: TSizes.spaceBtwInputFields),
                 Obx(
-                  () => ListTile(
-                    title: Text(
-                      'D.O.B: ${controller.dob.value.year == 1900 ? "Not Set" : '${controller.dob.value.day}-${controller.dob.value.month}-${controller.dob.value.year}'}',
+                  () => TextFormField(
+                    readOnly: true,
+                    controller: TextEditingController(
+                      text:
+                          controller.dob.value.year == 1900
+                              ? ''
+                              : '${controller.dob.value.day}-${controller.dob.value.month}-${controller.dob.value.year}',
                     ),
-                    trailing: const Icon(Icons.calendar_today),
+                    decoration: InputDecoration(
+                      labelText: 'Date of Birth',
+                      suffixIcon: Icon(Icons.calendar_today),
+                      hintText: 'Select date of birth',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     onTap: () => controller.pickDob(context),
+                    validator:
+                        (val) =>
+                            controller.dob.value.year == 1900
+                                ? 'Select DOB'
+                                : null,
                   ),
                 ),
+
                 const SizedBox(height: TSizes.spaceBtwInputFields),
                 TextFormField(
-                  controller: controller.remarkController,
+                  controller: controller.commentController,
                   maxLines: 4,
                   decoration: InputDecoration(
                     labelText: 'Remark',
@@ -78,7 +102,7 @@ class EditNoteScreen extends StatelessWidget {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    alignLabelWithHint: true, // aligns label with top-left
+                    alignLabelWithHint: true,
                   ),
                   validator: (val) => val!.isEmpty ? 'Enter remark' : null,
                 ),
@@ -106,18 +130,32 @@ class EditNoteScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: TSizes.spaceBtwInputFields),
-
                 Obx(
-                  () => ListTile(
-                    title: Text(
-                      'Anniversary: ${controller.anniversary.value.year == 1900 ? "Not Set" : '${controller.anniversary.value.day}-${controller.anniversary.value.month}-${controller.anniversary.value.year}'}',
+                  () => TextFormField(
+                    readOnly: true,
+                    controller: TextEditingController(
+                      text:
+                          controller.anniversary.value.year == 1900
+                              ? ''
+                              : '${controller.anniversary.value.day}-${controller.anniversary.value.month}-${controller.anniversary.value.year}',
                     ),
-                    trailing: const Icon(Icons.calendar_today),
+                    decoration: InputDecoration(
+                      labelText: 'Anniversary',
+                      suffixIcon: Icon(Icons.calendar_today),
+                      hintText: 'Select anniversary date',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     onTap: () => controller.pickAnniversary(context),
+                    validator:
+                        (val) =>
+                            controller.anniversary.value.year == 1900
+                                ? 'Select Anniversary'
+                                : null,
                   ),
                 ),
                 const SizedBox(height: TSizes.spaceBtwInputFields),
-
                 Obx(
                   () => ListTile(
                     title: Text(

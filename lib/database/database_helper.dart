@@ -15,7 +15,7 @@ class DatabaseHelper {
   static const columnDob = 'dob';
   static const columnAnniversary = 'anniversary';
   static const columnHowWeMet = 'howWeMet';
-  static const columnRemark = 'remark';
+  static const columnComment = 'comment';
   static const columnCallTime = 'callTime';
 
   static Database? _database;
@@ -49,7 +49,7 @@ class DatabaseHelper {
         $columnDob TEXT,
         $columnAnniversary TEXT,
         $columnHowWeMet TEXT,
-        $columnRemark TEXT,
+        $columnComment TEXT,
         $columnCallTime TEXT NOT NULL
       )
     ''');

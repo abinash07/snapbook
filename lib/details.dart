@@ -39,7 +39,10 @@ class DetailsScreen extends StatelessWidget {
 
         final reminder = snapshot.data!;
         return Scaffold(
-          appBar: AppBar(title: Text('Reminder Details')),
+          appBar: AppBar(
+            title: Text('Reminder Details'),
+            backgroundColor: Colors.white,
+          ),
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(
@@ -57,7 +60,7 @@ class DetailsScreen extends StatelessWidget {
                     formatDateTime(reminder.callTime),
                   ),
                   _buildField('🎂 DOB', formatDate(reminder.dob)),
-                  _buildField('📝 Remark', reminder.remark),
+                  _buildField('📝 Remark', reminder.comment),
                   _buildField(
                     '💍 Anniversary',
                     formatDate(reminder.anniversary),

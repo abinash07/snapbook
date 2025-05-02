@@ -6,7 +6,7 @@ class Reminder {
   final DateTime dob;
   final String howWeMet;
   final DateTime anniversary;
-  final String remark;
+  final String comment;
   final DateTime callTime;
 
   Reminder({
@@ -17,7 +17,7 @@ class Reminder {
     required this.dob,
     required this.howWeMet,
     required this.anniversary,
-    required this.remark,
+    required this.comment,
     required this.callTime,
   });
 
@@ -30,6 +30,7 @@ class Reminder {
       'dob': dob.toIso8601String(),
       'howWeMet': howWeMet,
       'anniversary': anniversary.toIso8601String(),
+      'comment': comment,
       'callTime': callTime.toIso8601String(),
     };
   }
@@ -43,7 +44,7 @@ class Reminder {
       dob: DateTime.parse(map['dob']),
       howWeMet: map['howWeMet'],
       anniversary: DateTime.parse(map['anniversary']),
-      remark: map['remark'],
+      comment: map['comment'],
       callTime: DateTime.parse(map['callTime']),
     );
   }

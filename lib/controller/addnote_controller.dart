@@ -12,7 +12,7 @@ class AddNoteController extends GetxController {
   final mobileController = TextEditingController();
   final locationController = TextEditingController();
   final dob = DateTime(1900).obs;
-  final remarkController = TextEditingController();
+  final commentController = TextEditingController();
   final anniversary = DateTime(1900).obs;
   final howWeMet = ''.obs;
   final callTime = DateTime.now().obs;
@@ -54,7 +54,7 @@ class AddNoteController extends GetxController {
         dob: dob.value,
         howWeMet: howWeMet.value,
         anniversary: anniversary.value,
-        remark: remarkController.text.trim(),
+        comment: commentController.text.trim(),
         callTime: callTime.value,
       );
 

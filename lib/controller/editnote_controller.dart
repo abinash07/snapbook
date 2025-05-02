@@ -14,7 +14,7 @@ class EditNoteController extends GetxController {
   final nameController = TextEditingController();
   final mobileController = TextEditingController();
   final locationController = TextEditingController();
-  final remarkController = TextEditingController();
+  final commentController = TextEditingController();
   final dob = DateTime(1900).obs;
   final anniversary = DateTime(1900).obs;
   final howWeMet = ''.obs;
@@ -37,7 +37,7 @@ class EditNoteController extends GetxController {
       dob.value = reminder.dob;
       anniversary.value = reminder.anniversary;
       howWeMet.value = reminder.howWeMet;
-      remarkController.text = reminder.remark;
+      commentController.text = reminder.comment;
       callTime.value = reminder.callTime;
     } finally {
       isLoading(false);
@@ -79,7 +79,7 @@ class EditNoteController extends GetxController {
           dob: dob.value,
           howWeMet: howWeMet.value,
           anniversary: anniversary.value,
-          remark: remarkController.text.trim(),
+          comment: commentController.text.trim(),
           callTime: callTime.value,
         );
 
